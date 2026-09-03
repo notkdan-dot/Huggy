@@ -1,12 +1,14 @@
 import asyncio
 import difflib
 import os
+import random
 import uuid
 from aiogram import Bot, Dispatcher, F, Router
 from aiogram.enums import ParseMode
 from aiogram.filters import Command, CommandStart
 from aiogram.types import (
     CallbackQuery,
+    ChosenInlineResult,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     InlineQuery,
@@ -58,21 +60,20 @@ _hits_and_fights = [
 ]
 
 _kills_and_dangers = [
-    "застрелить", "расстрелять", "отстрелить", "застрелиться", "порезаться",
-    "стрельнуть", "шмальнуть", "сжечь", "поджечь", "убить", "уничтожить",
-    "унизить", "арестовать", "оторвать", "отрубить", "отъебать", "отрезать",
-    "порезать", "резать", "закопать", "выкопать", "взорвать", "подорвать",
-    "заминировать", "кастрировать", "послать",
+    "застрелить", "расстрелять", "отстрелить", "стрельнуть", "шмальнуть", "сжечь", 
+    "поджечь", "убить", "уничтожить", "унизить", "арестовать", "оторвать", "отрубить", 
+    "отъебать", "отрезать", "порезать", "резать", "закопать", "выкопать", "взорвать", 
+    "подорвать", "заминировать", "кастрировать", "послать",
 ]
 
 _food_and_drink = [
     "покормить", "покушать", "поесть", "есть", "кушать", "пить", "попить",
-    "выпить", "попоить", "бухнуть", "хрум", "хрумкать", "хрустнуть",
+    "выпить", "попоить", "хрум", "хрумкать", "хрустнуть",
 ]
 
 _emotions_and_sounds = [
     "орать", "наорать", "рассмешить", "рассказать", "улыбнуться", "засмеяться",
-    "заплакать", "ухмыльнуться", "нахмуриться", "закатить", "вздохнуть", "зевнуть",
+    "ухмыльнуться", "нахмуриться", "закатить", "вздохнуть",
     "кивнуть", "покачать", "подмигнуть", "помахать", "показать", "постучать",
     "указать", "ткнуть", "поделиться", "фырк", "фыркнуть", "хмык", "хмыкнуть",
     "мур", "мурчать", "мурлыкнуть", "тявкнуть", "пырк", "шмяк", "чмяк", "бум",
@@ -90,7 +91,7 @@ _movement_and_actions = [
     "тянуть", "потянуть", "оставить", "посмотреть", "смотреть", "отправить",
     "открыть", "записать", "предложить", "пригласить", "снять", "медленно",
     "быстро", "ускориться", "замедлиться", "подпрыгнуть", "спрыгнуть",
-    "запрыгнуть", "перепрыгнуть", "убежать", "улизнуть", "смыться", "поползти",
+    "запрыгнуть", "перепрыгнуть", "смыться", "поползти",
     "приползти", "подползти", "уползти", "прокрасться", "подкрасться", "напасть",
     "наброситься", "прыгнуть", "шмыгнуть", "увернуться", "уклониться",
     "оглянуться", "повернуться", "нагнуться", "наклониться", "откинуться",
@@ -100,6 +101,7 @@ _movement_and_actions = [
 
 INSTANT_ACTIONS = {
     "застрелиться": "💀",
+    "застрелиться_я": "💀",
     "бухнуть": "🍻",
     "порезаться": "🩸",
     "упасть": "💥",
@@ -107,6 +109,10 @@ INSTANT_ACTIONS = {
     "заплакать": "💧",
     "заснуть": "💤",
 }
+
+ATTEMPT_ACTIONS = [
+    "улизнуть", "ускользнуть", "смыться", "убежать", "увернуться", "уклониться", "спрятаться"
+]
 
 ACTIONS_DICT = {}
 for w in _hugs_and_touch: ACTIONS_DICT[w] = ("🤗", "🫂")
@@ -120,13 +126,15 @@ for w in _food_and_drink:
     if w not in INSTANT_ACTIONS: ACTIONS_DICT[w] = ("🍕", "🥂")
 for w in _emotions_and_sounds:
     if w not in INSTANT_ACTIONS: ACTIONS_DICT[w] = ("💬", "💫")
-for w in _movement_and_actions: ACTIONS_DICT[w] = ("👣", "⚡")
+for w in _movement_and_actions:
+    if w not in ATTEMPT_ACTIONS: ACTIONS_DICT[w] = ("👣", "⚡")
 
 STORAGE = {}
 DECLINED_STORAGE = {}
 MARRY_STORAGE = {}
-MARRIAGES = {}  # user_id -> {"partner_id": int, "partner_name": str}
-STATS = {}      # chat_id -> {"total_accepted": int, "actions_usage": dict}
+ATTEMPT_TASKS_DATA = {}
+MARRIAGES = {}
+STATS = {}
 BLACKLIST = {}
 USER_NAME_TO_ID = {}
 
@@ -150,7 +158,9 @@ def get_past_form(verb: str) -> str:
         "прокричать": "прокричал(-а)", "завопить": "завопил(-а)", "визгнуть": "визгнул(-а)",
         "заикнуться": "заикнулся(-ась)", "изумиться": "изумился(-ась)", "опешить": "опешил(-а)",
         "поблагодарить": "поблагодарил(-а)", "попросить": "попросил(-а)", "позвать": "позвал(-а)",
-        "слушать": "слушал(-а)",
+        "слушать": "слушал(-а)", "улизнуть": "улизнул(-а)", "ускользнуть": "ускользнул(-а)",
+        "смыться": "смылся(-ась)", "убежать": "убежал(-а)", "увернуться": "увернулся(-ась)",
+        "уклониться": "уклонился(-ась)", "спрятаться": "спрятался(-ась)"
     }
     if verb in irregulars:
         return irregulars[verb]
@@ -171,8 +181,9 @@ def get_past_form(verb: str) -> str:
 async def start_handler(message: Message):
     text = (
         "✨ <b>Доступные действия для ролевой игры:</b>\n\n"
-        "⚡ <b>Мгновенные действия (без подтверждения):</b>\n"
-        f"{', '.join(INSTANT_ACTIONS.keys())}\n\n"
+        "⚡ <b>Мгновенные и попытки:</b>\n"
+        f"Мгновенные: {', '.join(INSTANT_ACTIONS.keys())}\n"
+        f"Попытки (50/50): {', '.join(ATTEMPT_ACTIONS)}\n\n"
         "💍 <b>Браки:</b> /marry в ответ на сообщение партнера, /divorce для расторжения.\n"
         "📊 <b>Статистика:</b> /stats\n\n"
         "💡 <i>Инлайн-режим: введите @ваш_бот действие [цель/текст]</i>"
@@ -404,6 +415,76 @@ async def force_action_handler(message: Message):
     DECLINED_STORAGE.pop(user_id, None)
 
 
+async def run_attempt_animation(bot, inline_msg_id, data):
+    sender_name = data["sender_name"]
+    action = data["base_action"]
+    rest = data["rest_of_text"]
+    
+    base_phrase = f"⚡ <b>{sender_name}</b> пытается {action}"
+    if rest:
+        base_phrase += f" {rest}"
+        
+    try:
+        await bot.edit_message_text(
+            inline_message_id=inline_msg_id,
+            text=base_phrase + "...",
+            parse_mode=ParseMode.HTML
+        )
+        await asyncio.sleep(1)
+        await bot.edit_message_text(
+            inline_message_id=inline_msg_id,
+            text=base_phrase + "..",
+            parse_mode=ParseMode.HTML
+        )
+        await asyncio.sleep(1)
+        await bot.edit_message_text(
+            inline_message_id=inline_msg_id,
+            text=base_phrase + ".",
+            parse_mode=ParseMode.HTML
+        )
+        await asyncio.sleep(1)
+        
+        success = random.choice([True, False])
+        
+        if success:
+            past = get_past_form(action)
+            final_text = f"✅ <b>{sender_name}</b> успешно {past}"
+            if rest:
+                final_text += f" {rest}"
+        else:
+            fail_verbs = {
+                "улизнуть": "не смог(-ла) улизнуть",
+                "ускользнуть": "не смог(-ла) ускользнуть",
+                "смыться": "не смог(-ла) смыться",
+                "убежать": "не смог(-ла) убежать",
+                "увернуться": "не смог(-ла) увернуться",
+                "уклониться": "не смог(-ла) уклониться",
+                "спрятаться": "не смог(-ла) спрятаться"
+            }
+            fail_msg = fail_verbs.get(action, f"не смог(-ла) {action}")
+            final_text = f"❌ <b>{sender_name}</b> {fail_msg}"
+            if rest:
+                final_text += f" {rest}"
+                
+        await bot.edit_message_text(
+            inline_message_id=inline_msg_id,
+            text=final_text,
+            parse_mode=ParseMode.HTML
+        )
+    except Exception as e:
+        print(f"Animation error: {e}")
+
+
+@router.chosen_inline_result()
+async def chosen_inline_handler(chosen: ChosenInlineResult):
+    result_id = chosen.result_id
+    if result_id in ATTEMPT_TASKS_DATA:
+        data = ATTEMPT_TASKS_DATA[result_id]
+        inline_msg_id = chosen.inline_message_id
+        if inline_msg_id:
+            asyncio.create_task(run_attempt_animation(chosen.bot, inline_msg_id, data))
+
+
 @router.inline_query()
 async def inline_rp_handler(query: InlineQuery):
     user_id = query.from_user.id
@@ -417,7 +498,7 @@ async def inline_rp_handler(query: InlineQuery):
         article = InlineQueryResultArticle(
             id="empty",
             title="Введите действие...",
-            description="Пример: поцеловать @username или застрелиться",
+            description="Пример: поцеловать @username или улизнуть",
             input_message_content=InputTextMessageContent(
                 message_text="✨ Напишите действие после юзернейма бота!"
             ),
@@ -446,7 +527,6 @@ async def inline_rp_handler(query: InlineQuery):
                 await query.answer([article], cache_time=1)
                 return
 
-    # Мгновенные действия (сохраняем остальной текст)
     if first_word in INSTANT_ACTIONS:
         emoji = INSTANT_ACTIONS[first_word]
         sender_name = query.from_user.first_name
@@ -463,7 +543,37 @@ async def inline_rp_handler(query: InlineQuery):
             InlineQueryResultArticle(
                 id=str(uuid.uuid4())[:8],
                 title=f"{emoji} {first_word.capitalize()} {rest_text_str}".strip(),
-                description="Мгновенное действие (без подтверждения)",
+                description="Мгновенное действие",
+                input_message_content=message_content,
+            )
+        )
+        await query.answer(results, cache_time=1, is_personal=True)
+        return
+
+    if first_word in ATTEMPT_ACTIONS:
+        sender_name = query.from_user.first_name
+        action_id = str(uuid.uuid4())[:8]
+        
+        ATTEMPT_TASKS_DATA[action_id] = {
+            "sender_name": sender_name,
+            "base_action": first_word,
+            "rest_of_text": rest_text_str
+        }
+        
+        initial_display = f"⚡ <b>{sender_name}</b> пытается {first_word}"
+        if rest_text_str:
+            initial_display += f" {rest_text_str}"
+        initial_display += "..."
+
+        message_content = InputTextMessageContent(
+            message_text=initial_display,
+            parse_mode=ParseMode.HTML,
+        )
+        results.append(
+            InlineQueryResultArticle(
+                id=action_id,
+                title=f"⚡ Попытка: {first_word.capitalize()} {rest_text_str}".strip(),
+                description="Шанс 50 на 50 (с анимацией)",
                 input_message_content=message_content,
             )
         )
@@ -551,7 +661,6 @@ async def accept_callback(callback: CallbackQuery):
     past_verb = get_past_form(base_action)
     updated_text = f"{accepted_emoji} <b>{sender_name}</b> {past_verb} {rest_of_text}".strip()
 
-    # Сохраняем статистику конкретно для этого чата (если доступен chat)
     chat_id = callback.message.chat.id if callback.message else 0
     if chat_id not in STATS:
         STATS[chat_id] = {"total_accepted": 0, "actions_usage": {}}
