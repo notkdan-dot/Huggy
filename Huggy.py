@@ -39,7 +39,6 @@ cursor.execute("""
         partner_name TEXT
     )
 """)
-# Глобальные таблицы статистики для инлайн-режима
 cursor.execute("""
     CREATE TABLE IF NOT EXISTS global_totals (
         id INTEGER PRIMARY KEY,
@@ -67,7 +66,7 @@ _hugs_and_touch = [
     "пожмякать", "мацать", "жмякать", "потискать", "затискать", "прильнуть",
     "ластиться", "млеть", "таять", "уткнуться", "прислониться", "притулиться",
     "потереться", "укрыть", "укутать", "окутать", "успокоить", "поддержать",
-    "причесать", "перевязать", "пожать", "положить",
+    "причесать", "перевязать", "пожать", "положить", "оставить",
 ]
 
 _kisses_and_love = [
@@ -101,9 +100,9 @@ _hits_and_fights = [
 
 _kills_and_dangers = [
     "застрелить", "расстрелять", "отстрелить", "стрельнуть", "шмальнуть", "сжечь", 
-    "поджечь", "убить", "уничтожить", "унизить", "арестовать", "оторвать", "отрубить", 
+    "поджечки", "убить", "уничтожить", "унизить", "арестовать", "оторвать", "отрубить", 
     "отъебать", "отрезать", "порезать", "резать", "закопать", "выкопать", "взорвать", 
-    "подорвать", "заминировать", "кастрировать", "послать",
+    "подорвать", "заминировать", "кастрировать", "послать", "поджечь",
 ]
 
 _food_and_drink = [
@@ -128,7 +127,7 @@ _movement_and_actions = [
     "сесть", "присесть", "посидеть", "встать", "привстать", "лечь", "прилечь",
     "полежать", "похрустеть", "сделать", "стать", "делать", "дать", "передать",
     "взять", "забрать", "схватить", "хвать", "подергать", "дернуть", "дергать",
-    "тянуть", "потянуть", "оставить", "посмотреть", "смотреть", "отправить",
+    "тянуть", "потянуть", "посмотреть", "смотреть", "отправить",
     "открыть", "записать", "предложить", "пригласить", "снять", "медленно",
     "быстро", "ускориться", "замедлиться", "подпрыгнуть", "спрыгнуть",
     "запрыгнуть", "перепрыгнуть", "смыться", "поползти",
@@ -230,24 +229,6 @@ async def start_handler(message: Message):
         f"• {', '.join(INSTANT_ACTIONS.keys())}\n\n"
         "🎲 <b>Попытки (шанс 50/50 с анимацией):</b>\n"
         f"• {', '.join(ATTEMPT_ACTIONS)}\n\n"
-        "🤗 <b>Обнимашки и касания:</b>\n"
-        f"• {', '.join(_hugs_and_touch[:15])} и др.\n\n"
-        "💋 <b>Любовь и романтика:</b>\n"
-        f"• {', '.join(_kisses_and_love)}\n\n"
-        "🔥 <b>Эротические действия:</b>\n"
-        f"• {', '.join(_explicit_actions[:12])} и др.\n\n"
-        "🐾 <b>Укусы и царапины:</b>\n"
-        f"• {', '.join(_bites_and_scratches[:12])} и др.\n\n"
-        "👊 <b>Драки и удары:</b>\n"
-        f"• {', '.join(_hits_and_fights[:15])} и др.\n\n"
-        "💀 <b>Оружие и опасности:</b>\n"
-        f"• {', '.join(_kills_and_dangers[:12])} и др.\n\n"
-        "🍕 <b>Еда и напитки:</b>\n"
-        f"• {', '.join(_food_and_drink)}\n\n"
-        "💬 <b>Эмоции и звуки:</b>\n"
-        f"• {', '.join(_emotions_and_sounds[:12])} и др.\n\n"
-        "👣 <b>Движения и действия:</b>\n"
-        f"• {', '.join(_movement_and_actions[:12])} и др.\n\n"
         "💡 <i>Инлайн-режим: введите в любом чате <code>@ваш_бот [действие] [цель/текст]</code></i>"
     )
     await message.answer(text, parse_mode=ParseMode.HTML)
@@ -453,7 +434,6 @@ async def force_action_handler(message: Message):
     past_verb = get_past_form(base_action)
     updated_text = f"⚡ <b>{sender_name}</b> принудительно {past_verb} {rest_of_text} {accepted_emoji}".strip()
 
-    # Обновляем глобальную статистику
     cursor.execute("INSERT INTO global_totals (id, total_accepted) VALUES (1, 1) ON CONFLICT(id) DO UPDATE SET total_accepted = total_accepted + 1")
     cursor.execute("INSERT INTO global_actions (action, count) VALUES (?, 1) ON CONFLICT(action) DO UPDATE SET count = count + 1", (base_action,))
     conn.commit()
@@ -490,23 +470,11 @@ async def run_attempt_animation(bot, inline_msg_id, data):
         base_phrase += f" {rest}"
         
     try:
-        await bot.edit_message_text(
-            inline_message_id=inline_msg_id,
-            text=base_phrase + "...",
-            parse_mode=ParseMode.HTML
-        )
+        await bot.edit_message_text(inline_message_id=inline_msg_id, text=base_phrase + "...", parse_mode=ParseMode.HTML)
         await asyncio.sleep(1)
-        await bot.edit_message_text(
-            inline_message_id=inline_msg_id,
-            text=base_phrase + "..",
-            parse_mode=ParseMode.HTML
-        )
+        await bot.edit_message_text(inline_message_id=inline_msg_id, text=base_phrase + "..", parse_mode=ParseMode.HTML)
         await asyncio.sleep(1)
-        await bot.edit_message_text(
-            inline_message_id=inline_msg_id,
-            text=base_phrase + ".",
-            parse_mode=ParseMode.HTML
-        )
+        await bot.edit_message_text(inline_message_id=inline_msg_id, text=base_phrase + ".", parse_mode=ParseMode.HTML)
         await asyncio.sleep(1)
         
         success = random.choice([True, False])
@@ -531,13 +499,9 @@ async def run_attempt_animation(bot, inline_msg_id, data):
             if rest:
                 final_text += f" {rest}"
                 
-        await bot.edit_message_text(
-            inline_message_id=inline_msg_id,
-            text=final_text,
-            parse_mode=ParseMode.HTML
-        )
+        await bot.edit_message_text(inline_message_id=inline_msg_id, text=final_text, parse_mode=ParseMode.HTML)
     except Exception as e:
-        print(f"Animation error (убедитесь, что Inline Feedback включен в BotFather): {e}")
+        print(f"Animation error: {e}")
 
 
 @router.chosen_inline_result()
@@ -564,9 +528,7 @@ async def inline_rp_handler(query: InlineQuery):
             id="empty",
             title="Введите действие...",
             description="Пример: поцеловать @username или улизнуть",
-            input_message_content=InputTextMessageContent(
-                message_text="✨ Напишите действие после юзернейма бота!"
-            ),
+            input_message_content=InputTextMessageContent(message_text="✨ Напишите действие после юзернейма бота!"),
         )
         await query.answer([article], cache_time=1)
         return
@@ -587,9 +549,7 @@ async def inline_rp_handler(query: InlineQuery):
                         id="blocked",
                         title="🚫 Ошибка отправки",
                         description="Этот пользователь добавил вас в черный список!",
-                        input_message_content=InputTextMessageContent(
-                            message_text="🚫 Вы не можете отправлять запросы этому пользователю."
-                        ),
+                        input_message_content=InputTextMessageContent(message_text="🚫 Вы не можете отправлять запросы этому пользователю."),
                     )
                     await query.answer([article], cache_time=1)
                     return
@@ -602,10 +562,7 @@ async def inline_rp_handler(query: InlineQuery):
         if rest_text_str:
             msg_text += f" {rest_text_str}"
 
-        message_content = InputTextMessageContent(
-            message_text=msg_text,
-            parse_mode=ParseMode.HTML,
-        )
+        message_content = InputTextMessageContent(message_text=msg_text, parse_mode=ParseMode.HTML)
         results.append(
             InlineQueryResultArticle(
                 id=str(uuid.uuid4())[:8],
@@ -632,10 +589,7 @@ async def inline_rp_handler(query: InlineQuery):
             initial_display += f" {rest_text_str}"
         initial_display += "..."
 
-        message_content = InputTextMessageContent(
-            message_text=initial_display,
-            parse_mode=ParseMode.HTML,
-        )
+        message_content = InputTextMessageContent(message_text=initial_display, parse_mode=ParseMode.HTML)
         results.append(
             InlineQueryResultArticle(
                 id=action_id,
@@ -659,9 +613,7 @@ async def inline_rp_handler(query: InlineQuery):
             id="error",
             title="❌ Неизвестное действие",
             description="Такого действия нет в списке!",
-            input_message_content=InputTextMessageContent(
-                message_text="❌ Ошибка: такого действия нет в списке разрешенных команд."
-            ),
+            input_message_content=InputTextMessageContent(message_text="❌ Ошибка: такого действия нет в списке разрешенных команд."),
         )
         await query.answer([article], cache_time=1)
         return
@@ -728,25 +680,15 @@ async def accept_callback(callback: CallbackQuery):
     past_verb = get_past_form(base_action)
     updated_text = f"{accepted_emoji} <b>{sender_name}</b> {past_verb} {rest_of_text}".strip()
 
-    # Записываем в глобальную статистику
     cursor.execute("INSERT INTO global_totals (id, total_accepted) VALUES (1, 1) ON CONFLICT(id) DO UPDATE SET total_accepted = total_accepted + 1")
     cursor.execute("INSERT INTO global_actions (action, count) VALUES (?, 1) ON CONFLICT(action) DO UPDATE SET count = count + 1", (base_action,))
     conn.commit()
 
     try:
         if callback.inline_message_id:
-            await callback.bot.edit_message_text(
-                inline_message_id=callback.inline_message_id,
-                text=updated_text,
-                parse_mode=ParseMode.HTML,
-                reply_markup=None
-            )
+            await callback.bot.edit_message_text(inline_message_id=callback.inline_message_id, text=updated_text, parse_mode=ParseMode.HTML, reply_markup=None)
         else:
-            await callback.message.edit_text(
-                text=updated_text,
-                parse_mode=ParseMode.HTML,
-                reply_markup=None
-            )
+            await callback.message.edit_text(text=updated_text, parse_mode=ParseMode.HTML, reply_markup=None)
         await callback.answer("Действие принято! ❤️")
     except Exception as e:
         print(f"Ошибка в accept_callback: {e}")
@@ -784,24 +726,13 @@ async def decline_callback(callback: CallbackQuery):
         "message_id": callback.message.message_id if callback.message else None,
     }
 
-    updated_text = (
-        f"💔 <b>{sender_name}</b> попытался совершить действие, но <b>{target_name}</b> отказался(-ась)."
-    )
+    updated_text = f"💔 <b>{sender_name}</b> попытался совершить действие, но <b>{target_name}</b> отказался(-ась)."
 
     try:
         if callback.inline_message_id:
-            await callback.bot.edit_message_text(
-                inline_message_id=callback.inline_message_id,
-                text=updated_text,
-                parse_mode=ParseMode.HTML,
-                reply_markup=None
-            )
+            await callback.bot.edit_message_text(inline_message_id=callback.inline_message_id, text=updated_text, parse_mode=ParseMode.HTML, reply_markup=None)
         else:
-            await callback.message.edit_text(
-                text=updated_text,
-                parse_mode=ParseMode.HTML,
-                reply_markup=None
-            )
+            await callback.message.edit_text(text=updated_text, parse_mode=ParseMode.HTML, reply_markup=None)
         await callback.answer("Действие отклонено.")
     except Exception as e:
         print(f"Ошибка в decline_callback: {e}")
