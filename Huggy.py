@@ -753,7 +753,7 @@ async def decline_callback(callback: CallbackQuery):
     sender_name = data["sender_name"]
     target_name = callback.from_user.first_name
     
-    storage_key = callback.inline_message_id if callback.inline_message_id else (callback.message.message_id if callback.message else action_id)
+    storage_key = callback.message.message_id if callback.message else action_id
 
     DECLINED_STORAGE[storage_key] = {
         "sender_id": data["sender_id"],
@@ -766,8 +766,7 @@ async def decline_callback(callback: CallbackQuery):
     }
 
     updated_text = (
-        f"💔 <b>{sender_name}</b> попытался совершить действие, но <b>{target_name}</b> отказался(-ась).\n"
-        f"💡 <i>Отправьте ответом !принудить, чтобы выполнить принудительно.</i>"
+        f"💔 <b>{sender_name}</b> попытался совершить действие, но <b>{target_name}</b> отказался(-ась)."
     )
 
     try:
@@ -811,8 +810,7 @@ async def main():
     dp = Dispatcher()
     dp.include_router(router)
     await bot.delete_webhook(drop_pending_updates=True)
-
-    # Запускаем веб-сервер для удержания порта на Render
+    
     await start_web_server()
 
     await dp.start_polling(bot)
