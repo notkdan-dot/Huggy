@@ -78,7 +78,7 @@ _explicit_actions = [
     "засосать", "трахнуть", "оттрахать", "изнасиловать", "иметь", "отиметь",
     "отшлифовать", "трахать", "ебать", "выебать", "отсосать", "отлизать",
     "отполировать", "полировать", "отминенить", "ссосать", "высосать", "раздеть",
-    "осеменить", "оплодотворить",
+    "осеменить", "оплодотворить", "подрочить", "дрочить", "забеременеть от",
 ]
 
 _bites_and_scratches = [
@@ -196,7 +196,8 @@ def get_past_form(verb: str) -> str:
         "поблагодарить": "поблагодарил(-а)", "попросить": "попросил(-а)", "позвать": "позвал(-а)",
         "слушать": "слушал(-а)", "улизнуть": "улизнул(-а)", "ускользнуть": "ускользнул(-а)",
         "смыться": "смылся(-ась)", "убежать": "убежал(-а)", "увернуться": "увернулся(-ась)",
-        "уклониться": "уклонился(-ась)", "спрятаться": "спрятался(-ась)"
+        "уклониться": "уклонился(-ась)", "спрятаться": "спрятался(-ась)",
+        "забеременеть от": "забеременел(-а) от", "подрочить": "подрочил(-а)", "дрочить": "дрочил(-а)"
     }
     if verb in irregulars:
         return irregulars[verb]
@@ -432,7 +433,7 @@ async def force_action_handler(message: Message):
     accepted_emoji = data["accepted_emoji"]
 
     past_verb = get_past_form(base_action)
-    updated_text = f"⚡ <b>{sender_name}</b> принудительно {past_verb} {rest_of_text} {accepted_emoji}".strip()
+    updated_text = f"{accepted_emoji} <b>{sender_name}</b> {past_verb} {rest_of_text}".strip()
 
     cursor.execute("INSERT INTO global_totals (id, total_accepted) VALUES (1, 1) ON CONFLICT(id) DO UPDATE SET total_accepted = total_accepted + 1")
     cursor.execute("INSERT INTO global_actions (action, count) VALUES (?, 1) ON CONFLICT(action) DO UPDATE SET count = count + 1", (base_action,))
@@ -535,7 +536,22 @@ async def inline_rp_handler(query: InlineQuery):
 
     words = text.split()
     first_word = words[0].lower() if words else ""
+    
+    # Обработка составных действий вроде "забеременеть от"
+    if first_word == "забеременеть" and len(words) > 1 and words[1].lower() == "от":
+        first_word = "забеременеть от"
+        words = [first_word] + words[2:]
+
     rest_of_words = words[1:] if len(words) > 1 else []
+
+    # Автоматическое определение партнера по браку, если цель не указана явно через @
+    if not any(w.startswith("@") for w in rest_of_words):
+        cursor.execute("SELECT partner_name FROM marriages WHERE user_id = ?", (user_id,))
+        spouse_row = cursor.fetchone()
+        if spouse_row:
+            spouse_name = spouse_row[0]
+            rest_of_words = [spouse_name] + rest_of_words
+
     rest_text_str = " ".join(rest_of_words) if rest_of_words else ""
 
     for word in rest_of_words:
