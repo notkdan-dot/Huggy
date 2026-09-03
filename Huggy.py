@@ -22,7 +22,13 @@ from aiohttp import web
 TOKEN = "8854942536:AAHwvwjuecCpgdf4p3stFebRH6z1SqdLI5I"
 router = Router()
 
-DB_FILE = "bot_data.db"
+# Поддержка Render Disk для сохранения базы данных при перезагрузках
+if os.path.exists("/data") or os.environ.get("RENDER"):
+    os.makedirs("/data", exist_ok=True)
+    DB_FILE = "/data/bot_data.db"
+else:
+    DB_FILE = "bot_data.db"
+
 conn = sqlite3.connect(DB_FILE, check_same_thread=False)
 cursor = conn.cursor()
 
@@ -228,12 +234,20 @@ async def start_handler(message: Message):
         f"• {', '.join(_hugs_and_touch[:15])} и др.\n\n"
         "💋 <b>Любовь и романтика:</b>\n"
         f"• {', '.join(_kisses_and_love)}\n\n"
+        "🔥 <b>Эротические действия:</b>\n"
+        f"• {', '.join(_explicit_actions[:12])} и др.\n\n"
+        "🐾 <b>Укусы и царапины:</b>\n"
+        f"• {', '.join(_bites_and_scratches[:12])} и др.\n\n"
         "👊 <b>Драки и удары:</b>\n"
         f"• {', '.join(_hits_and_fights[:15])} и др.\n\n"
         "💀 <b>Оружие и опасности:</b>\n"
         f"• {', '.join(_kills_and_dangers[:12])} и др.\n\n"
         "🍕 <b>Еда и напитки:</b>\n"
         f"• {', '.join(_food_and_drink)}\n\n"
+        "💬 <b>Эмоции и звуки:</b>\n"
+        f"• {', '.join(_emotions_and_sounds[:12])} и др.\n\n"
+        "👣 <b>Движения и действия:</b>\n"
+        f"• {', '.join(_movement_and_actions[:12])} и др.\n\n"
         "💡 <i>Инлайн-режим: введите в любом чате <code>@ваш_бот [действие] [цель/текст]</code></i>"
     )
     await message.answer(text, parse_mode=ParseMode.HTML)
