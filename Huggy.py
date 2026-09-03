@@ -33,18 +33,17 @@ cursor.execute("""
         partner_name TEXT
     )
 """)
+# Глобальные таблицы статистики для инлайн-режима
 cursor.execute("""
-    CREATE TABLE IF NOT EXISTS chat_totals (
-        chat_id INTEGER PRIMARY KEY,
+    CREATE TABLE IF NOT EXISTS global_totals (
+        id INTEGER PRIMARY KEY,
         total_accepted INTEGER
     )
 """)
 cursor.execute("""
-    CREATE TABLE IF NOT EXISTS chat_actions (
-        chat_id INTEGER,
-        action TEXT,
-        count INTEGER,
-        PRIMARY KEY (chat_id, action)
+    CREATE TABLE IF NOT EXISTS global_actions (
+        action TEXT PRIMARY KEY,
+        count INTEGER
     )
 """)
 cursor.execute("""
@@ -212,26 +211,41 @@ def get_past_form(verb: str) -> str:
 @router.message(CommandStart())
 async def start_handler(message: Message):
     text = (
-        "✨ <b>Доступные действия для ролевой игры:</b>\n\n"
-        "⚡ <b>Мгновенные и попытки:</b>\n"
-        f"Мгновенные: {', '.join(INSTANT_ACTIONS.keys())}\n"
-        f"Попытки (50/50): {', '.join(ATTEMPT_ACTIONS)}\n\n"
-        "💍 <b>Браки:</b> /marry в ответ на сообщение партнера, /divorce для расторжения.\n"
-        "📊 <b>Статистика:</b> /stats\n\n"
-        "💡 <i>Инлайн-режим: введите @ваш_бот действие [цель/текст]</i>"
+        "✨ <b>Добро пожаловать в ролевой бот!</b>\n\n"
+        "💍 <b>Команды браков:</b>\n"
+        "• /marry — сделать предложение (в ответ на сообщение)\n"
+        "• /divorce — расторгнуть брак\n\n"
+        "📊 <b>Статистика и черный список:</b>\n"
+        "• /stats — посмотреть общую статистику\n"
+        "• /block @user — заблокировать пользователя\n"
+        "• /unblock @user — разблокировать пользователя\n"
+        "• <code>!принудить</code> — ответить на отклоненное действие\n\n"
+        "⚡ <b>Мгновенные действия:</b>\n"
+        f"• {', '.join(INSTANT_ACTIONS.keys())}\n\n"
+        "🎲 <b>Попытки (шанс 50/50 с анимацией):</b>\n"
+        f"• {', '.join(ATTEMPT_ACTIONS)}\n\n"
+        "🤗 <b>Обнимашки и касания:</b>\n"
+        f"• {', '.join(_hugs_and_touch[:15])} и др.\n\n"
+        "💋 <b>Любовь и романтика:</b>\n"
+        f"• {', '.join(_kisses_and_love)}\n\n"
+        "👊 <b>Драки и удары:</b>\n"
+        f"• {', '.join(_hits_and_fights[:15])} и др.\n\n"
+        "💀 <b>Оружие и опасности:</b>\n"
+        f"• {', '.join(_kills_and_dangers[:12])} и др.\n\n"
+        "🍕 <b>Еда и напитки:</b>\n"
+        f"• {', '.join(_food_and_drink)}\n\n"
+        "💡 <i>Инлайн-режим: введите в любом чате <code>@ваш_бот [действие] [цель/текст]</code></i>"
     )
     await message.answer(text, parse_mode=ParseMode.HTML)
 
 
 @router.message(Command("stats"))
 async def stats_handler(message: Message):
-    chat_id = message.chat.id
-    
-    cursor.execute("SELECT total_accepted FROM chat_totals WHERE chat_id = ?", (chat_id,))
+    cursor.execute("SELECT total_accepted FROM global_totals WHERE id = 1")
     row = cursor.fetchone()
     total = row[0] if row else 0
 
-    cursor.execute("SELECT action, count FROM chat_actions WHERE chat_id = ? ORDER BY count DESC LIMIT 5", (chat_id,))
+    cursor.execute("SELECT action, count FROM global_actions ORDER BY count DESC LIMIT 5")
     top_actions = cursor.fetchall()
     
     top_text = (
@@ -249,9 +263,9 @@ async def stats_handler(message: Message):
         marriage_text = "Не состоит в браке 💔"
 
     await message.answer(
-        f"📊 <b>Статистика для этого чата:</b>\n\n"
+        f"📊 <b>Глобальная статистика бота:</b>\n\n"
         f"💍 Ваш статус: {marriage_text}\n"
-        f"✅ Успешно выполненных действий: <b>{total}</b>\n\n"
+        f"✅ Всего успешных действий: <b>{total}</b>\n\n"
         f"🏆 <b>Топ-5 популярных действий:</b>\n{top_text}",
         parse_mode=ParseMode.HTML,
     )
@@ -425,9 +439,9 @@ async def force_action_handler(message: Message):
     past_verb = get_past_form(base_action)
     updated_text = f"⚡ <b>{sender_name}</b> принудительно {past_verb} {rest_of_text} {accepted_emoji}".strip()
 
-    chat_id = message.chat.id
-    cursor.execute("INSERT INTO chat_totals (chat_id, total_accepted) VALUES (?, 1) ON CONFLICT(chat_id) DO UPDATE SET total_accepted = total_accepted + 1", (chat_id,))
-    cursor.execute("INSERT INTO chat_actions (chat_id, action, count) VALUES (?, ?, 1) ON CONFLICT(chat_id, action) DO UPDATE SET count = count + 1", (chat_id, base_action))
+    # Обновляем глобальную статистику
+    cursor.execute("INSERT INTO global_totals (id, total_accepted) VALUES (1, 1) ON CONFLICT(id) DO UPDATE SET total_accepted = total_accepted + 1")
+    cursor.execute("INSERT INTO global_actions (action, count) VALUES (?, 1) ON CONFLICT(action) DO UPDATE SET count = count + 1", (base_action,))
     conn.commit()
 
     try:
@@ -509,7 +523,7 @@ async def run_attempt_animation(bot, inline_msg_id, data):
             parse_mode=ParseMode.HTML
         )
     except Exception as e:
-        print(f"Animation error: {e}")
+        print(f"Animation error (убедитесь, что Inline Feedback включен в BotFather): {e}")
 
 
 @router.chosen_inline_result()
@@ -700,11 +714,10 @@ async def accept_callback(callback: CallbackQuery):
     past_verb = get_past_form(base_action)
     updated_text = f"{accepted_emoji} <b>{sender_name}</b> {past_verb} {rest_of_text}".strip()
 
-    chat_id = callback.message.chat.id if callback.message else 0
-    if chat_id:
-        cursor.execute("INSERT INTO chat_totals (chat_id, total_accepted) VALUES (?, 1) ON CONFLICT(chat_id) DO UPDATE SET total_accepted = total_accepted + 1", (chat_id,))
-        cursor.execute("INSERT INTO chat_actions (chat_id, action, count) VALUES (?, ?, 1) ON CONFLICT(chat_id, action) DO UPDATE SET count = count + 1", (chat_id, base_action))
-        conn.commit()
+    # Записываем в глобальную статистику
+    cursor.execute("INSERT INTO global_totals (id, total_accepted) VALUES (1, 1) ON CONFLICT(id) DO UPDATE SET total_accepted = total_accepted + 1")
+    cursor.execute("INSERT INTO global_actions (action, count) VALUES (?, 1) ON CONFLICT(action) DO UPDATE SET count = count + 1", (base_action,))
+    conn.commit()
 
     try:
         if callback.inline_message_id:
