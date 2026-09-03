@@ -22,12 +22,18 @@ from aiohttp import web
 TOKEN = "8854942536:AAHwvwjuecCpgdf4p3stFebRH6z1SqdLI5I"
 router = Router()
 
-# Поддержка Render Disk для сохранения базы данных при перезагрузках
-if os.path.exists("/data") or os.environ.get("RENDER"):
-    os.makedirs("/data", exist_ok=True)
-    DB_FILE = "/data/bot_data.db"
-else:
-    DB_FILE = "bot_data.db"
+# Безопасная инициализация базы данных с проверкой прав на запись
+DB_FILE = "bot_data.db"
+if os.environ.get("RENDER"):
+    try:
+        os.makedirs("/data", exist_ok=True)
+        test_path = "/data/test_permissions.tmp"
+        with open(test_path, "w") as f:
+            f.write("test")
+        os.remove(test_path)
+        DB_FILE = "/data/bot_data.db"
+    except (PermissionError, OSError):
+        DB_FILE = "bot_data.db"
 
 conn = sqlite3.connect(DB_FILE, check_same_thread=False)
 cursor = conn.cursor()
