@@ -2,6 +2,7 @@ import asyncio
 import difflib
 import os
 import random
+import sqlite3
 import uuid
 from aiogram import Bot, Dispatcher, F, Router
 from aiogram.enums import ParseMode
@@ -20,6 +21,40 @@ from aiohttp import web
 
 TOKEN = "8854942536:AAHwvwjuecCpgdf4p3stFebRH6z1SqdLI5I"
 router = Router()
+
+DB_FILE = "bot_data.db"
+conn = sqlite3.connect(DB_FILE, check_same_thread=False)
+cursor = conn.cursor()
+
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS marriages (
+        user_id INTEGER PRIMARY KEY,
+        partner_id INTEGER,
+        partner_name TEXT
+    )
+""")
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS chat_totals (
+        chat_id INTEGER PRIMARY KEY,
+        total_accepted INTEGER
+    )
+""")
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS chat_actions (
+        chat_id INTEGER,
+        action TEXT,
+        count INTEGER,
+        PRIMARY KEY (chat_id, action)
+    )
+""")
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS blacklist (
+        user_id INTEGER,
+        blocked_id INTEGER,
+        PRIMARY KEY (user_id, blocked_id)
+    )
+""")
+conn.commit()
 
 _hugs_and_touch = [
     "обнять", "прижать", "погладить", "гладь", "поглаживать", "массировать",
@@ -133,9 +168,6 @@ STORAGE = {}
 DECLINED_STORAGE = {}
 MARRY_STORAGE = {}
 ATTEMPT_TASKS_DATA = {}
-MARRIAGES = {}
-STATS = {}
-BLACKLIST = {}
 USER_NAME_TO_ID = {}
 
 
@@ -194,13 +226,14 @@ async def start_handler(message: Message):
 @router.message(Command("stats"))
 async def stats_handler(message: Message):
     chat_id = message.chat.id
-    if chat_id not in STATS:
-        STATS[chat_id] = {"total_accepted": 0, "actions_usage": {}}
     
-    chat_stats = STATS[chat_id]
-    total = chat_stats["total_accepted"]
-    usage = chat_stats["actions_usage"]
-    top_actions = sorted(usage.items(), key=lambda x: x[1], reverse=True)[:5]
+    cursor.execute("SELECT total_accepted FROM chat_totals WHERE chat_id = ?", (chat_id,))
+    row = cursor.fetchone()
+    total = row[0] if row else 0
+
+    cursor.execute("SELECT action, count FROM chat_actions WHERE chat_id = ? ORDER BY count DESC LIMIT 5", (chat_id,))
+    top_actions = cursor.fetchall()
+    
     top_text = (
         "\n".join([f"• <code>{act}</code> — {cnt} раз(а)" for act, cnt in top_actions])
         if top_actions
@@ -208,9 +241,10 @@ async def stats_handler(message: Message):
     )
 
     user_id = message.from_user.id
-    marriage_info = MARRIAGES.get(user_id)
-    if marriage_info:
-        marriage_text = f"Состоит в браке с <b>{marriage_info['partner_name']}</b> ❤️"
+    cursor.execute("SELECT partner_name FROM marriages WHERE user_id = ?", (user_id,))
+    marriage_row = cursor.fetchone()
+    if marriage_row:
+        marriage_text = f"Состоит в браке с <b>{marriage_row[0]}</b> ❤️"
     else:
         marriage_text = "Не состоит в браке 💔"
 
@@ -237,7 +271,12 @@ async def marry_handler(message: Message):
         await message.reply("💍 Нельзя пожениться на самом себе!")
         return
 
-    if user_id in MARRIAGES or partner_id in MARRIAGES:
+    cursor.execute("SELECT user_id FROM marriages WHERE user_id = ? OR partner_id = ?", (user_id, user_id))
+    user_married = cursor.fetchone()
+    cursor.execute("SELECT user_id FROM marriages WHERE user_id = ? OR partner_id = ?", (partner_id, partner_id))
+    partner_married = cursor.fetchone()
+
+    if user_married or partner_married:
         await message.reply("💍 Кто-то из вас уже состоит в браке!")
         return
 
@@ -279,12 +318,14 @@ async def marry_accept_callback(callback: CallbackQuery):
     user_id = data["user_id"]
     partner_id = data["partner_id"]
 
-    if user_id in MARRIAGES or partner_id in MARRIAGES:
+    cursor.execute("SELECT user_id FROM marriages WHERE user_id = ? OR partner_id = ? OR user_id = ? OR partner_id = ?", (user_id, user_id, partner_id, partner_id))
+    if cursor.fetchone():
         await callback.answer("Кто-то из вас уже состоит в браке!", show_alert=True)
         return
 
-    MARRIAGES[user_id] = {"partner_id": partner_id, "partner_name": data["partner_name"]}
-    MARRIAGES[partner_id] = {"partner_id": user_id, "partner_name": data["user_name"]}
+    cursor.execute("INSERT OR REPLACE INTO marriages (user_id, partner_id, partner_name) VALUES (?, ?, ?)", (user_id, partner_id, data["partner_name"]))
+    cursor.execute("INSERT OR REPLACE INTO marriages (user_id, partner_id, partner_name) VALUES (?, ?, ?)", (partner_id, user_id, data["user_name"]))
+    conn.commit()
 
     await callback.message.edit_text(
         f"💍 <b>Поздравляем!</b> <b>{data['user_name']}</b> и <b>{data['partner_name']}</b> теперь официально в браке! ❤️",
@@ -318,14 +359,15 @@ async def marry_decline_callback(callback: CallbackQuery):
 @router.message(Command("divorce"))
 async def divorce_handler(message: Message):
     user_id = message.from_user.id
-    if user_id not in MARRIAGES:
+    cursor.execute("SELECT partner_id FROM marriages WHERE user_id = ?", (user_id,))
+    row = cursor.fetchone()
+    if not row:
         await message.reply("💔 Вы и так не состоите в браке.")
         return
 
-    partner_id = MARRIAGES[user_id]["partner_id"]
-    MARRIAGES.pop(user_id, None)
-    if partner_id in MARRIAGES:
-        MARRIAGES.pop(partner_id, None)
+    partner_id = row[0]
+    cursor.execute("DELETE FROM marriages WHERE user_id = ? OR user_id = ?", (user_id, partner_id))
+    conn.commit()
 
     await message.reply("💔 Вы успешно развелись и разорвали брак.")
 
@@ -345,10 +387,8 @@ async def block_handler(message: Message):
         return
 
     user_id = message.from_user.id
-    if user_id not in BLACKLIST:
-        BLACKLIST[user_id] = set()
-
-    BLACKLIST[user_id].add(target_id)
+    cursor.execute("INSERT OR IGNORE INTO blacklist (user_id, blocked_id) VALUES (?, ?)", (user_id, target_id))
+    conn.commit()
     await message.reply(f"🚫 Пользователь @{target_username} добавлен в ваш черный список.")
 
 
@@ -363,11 +403,9 @@ async def unblock_handler(message: Message):
     target_id = USER_NAME_TO_ID.get(target_username)
 
     user_id = message.from_user.id
-    if user_id in BLACKLIST and target_id in BLACKLIST[user_id]:
-        BLACKLIST[user_id].remove(target_id)
-        await message.reply(f"✅ Пользователь @{target_username} удален из черного списка.")
-    else:
-        await message.reply("⚠️ Пользователь не найден в черном списке.")
+    cursor.execute("DELETE FROM blacklist WHERE user_id = ? AND blocked_id = ?", (user_id, target_id))
+    conn.commit()
+    await message.reply(f"✅ Пользователь @{target_username} удален из черного списка.")
 
 
 @router.message(F.text.lower() == "!принудить")
@@ -388,10 +426,9 @@ async def force_action_handler(message: Message):
     updated_text = f"⚡ <b>{sender_name}</b> принудительно {past_verb} {rest_of_text} {accepted_emoji}".strip()
 
     chat_id = message.chat.id
-    if chat_id not in STATS:
-        STATS[chat_id] = {"total_accepted": 0, "actions_usage": {}}
-    STATS[chat_id]["total_accepted"] += 1
-    STATS[chat_id]["actions_usage"][base_action] = STATS[chat_id]["actions_usage"].get(base_action, 0) + 1
+    cursor.execute("INSERT INTO chat_totals (chat_id, total_accepted) VALUES (?, 1) ON CONFLICT(chat_id) DO UPDATE SET total_accepted = total_accepted + 1", (chat_id,))
+    cursor.execute("INSERT INTO chat_actions (chat_id, action, count) VALUES (?, ?, 1) ON CONFLICT(chat_id, action) DO UPDATE SET count = count + 1", (chat_id, base_action))
+    conn.commit()
 
     try:
         if data.get("inline_message_id"):
@@ -515,17 +552,19 @@ async def inline_rp_handler(query: InlineQuery):
         if word.startswith("@"):
             target_uname = word.lstrip("@").lower()
             target_id = USER_NAME_TO_ID.get(target_uname)
-            if target_id and target_id in BLACKLIST and user_id in BLACKLIST[target_id]:
-                article = InlineQueryResultArticle(
-                    id="blocked",
-                    title="🚫 Ошибка отправки",
-                    description="Этот пользователь добавил вас в черный список!",
-                    input_message_content=InputTextMessageContent(
-                        message_text="🚫 Вы не можете отправлять запросы этому пользователю."
-                    ),
-                )
-                await query.answer([article], cache_time=1)
-                return
+            if target_id:
+                cursor.execute("SELECT 1 FROM blacklist WHERE user_id = ? AND blocked_id = ?", (target_id, user_id))
+                if cursor.fetchone():
+                    article = InlineQueryResultArticle(
+                        id="blocked",
+                        title="🚫 Ошибка отправки",
+                        description="Этот пользователь добавил вас в черный список!",
+                        input_message_content=InputTextMessageContent(
+                            message_text="🚫 Вы не можете отправлять запросы этому пользователю."
+                        ),
+                    )
+                    await query.answer([article], cache_time=1)
+                    return
 
     if first_word in INSTANT_ACTIONS:
         emoji = INSTANT_ACTIONS[first_word]
@@ -662,10 +701,10 @@ async def accept_callback(callback: CallbackQuery):
     updated_text = f"{accepted_emoji} <b>{sender_name}</b> {past_verb} {rest_of_text}".strip()
 
     chat_id = callback.message.chat.id if callback.message else 0
-    if chat_id not in STATS:
-        STATS[chat_id] = {"total_accepted": 0, "actions_usage": {}}
-    STATS[chat_id]["total_accepted"] += 1
-    STATS[chat_id]["actions_usage"][base_action] = STATS[chat_id]["actions_usage"].get(base_action, 0) + 1
+    if chat_id:
+        cursor.execute("INSERT INTO chat_totals (chat_id, total_accepted) VALUES (?, 1) ON CONFLICT(chat_id) DO UPDATE SET total_accepted = total_accepted + 1", (chat_id,))
+        cursor.execute("INSERT INTO chat_actions (chat_id, action, count) VALUES (?, ?, 1) ON CONFLICT(chat_id, action) DO UPDATE SET count = count + 1", (chat_id, base_action))
+        conn.commit()
 
     try:
         if callback.inline_message_id:
