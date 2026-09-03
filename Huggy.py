@@ -67,6 +67,7 @@ _hugs_and_touch = [
     "ластиться", "млеть", "таять", "уткнуться", "прислониться", "притулиться",
     "потереться", "укрыть", "укутать", "окутать", "успокоить", "поддержать",
     "причесать", "перевязать", "пожать", "положить", "оставить",
+    "вытереть", "протереть", "подтереть",
 ]
 
 _kisses_and_love = [
@@ -197,11 +198,12 @@ def get_past_form(verb: str) -> str:
         "слушать": "слушал(-а)", "улизнуть": "улизнул(-а)", "ускользнуть": "ускользнул(-а)",
         "смыться": "смылся(-ась)", "убежать": "убежал(-а)", "увернуться": "увернулся(-ась)",
         "уклониться": "уклонился(-ась)", "спрятаться": "спрятался(-ась)",
-        "забеременеть от": "забеременел(-а) от", "подрочить": "подрочил(-а)", "дрочить": "дрочил(-а)"
+        "забеременеть от": "забеременел(-а) от", "подрочить": "подрочил(-а)", "дрочить": "подрочил(-а)",
+        "вытереть": "вытер(-а)", "протереть": "протер(-а)", "подтереть": "подтер(-а)"
     }
     if verb in irregulars:
         return irregulars[verb]
-    
+     
     if verb.endswith("ться") or verb.endswith("тись"):
         return verb[:-4] + "лся(-ась)"
     elif verb.endswith("ть"):
@@ -243,7 +245,7 @@ async def stats_handler(message: Message):
 
     cursor.execute("SELECT action, count FROM global_actions ORDER BY count DESC LIMIT 5")
     top_actions = cursor.fetchall()
-    
+     
     top_text = (
         "\n".join([f"• <code>{act}</code> — {cnt} раз(а)" for act, cnt in top_actions])
         if top_actions
@@ -465,11 +467,11 @@ async def run_attempt_animation(bot, inline_msg_id, data):
     sender_name = data["sender_name"]
     action = data["base_action"]
     rest = data["rest_of_text"]
-    
+     
     base_phrase = f"⚡ <b>{sender_name}</b> пытается {action}"
     if rest:
         base_phrase += f" {rest}"
-        
+         
     try:
         await bot.edit_message_text(inline_message_id=inline_msg_id, text=base_phrase + "...", parse_mode=ParseMode.HTML)
         await asyncio.sleep(1)
@@ -477,9 +479,9 @@ async def run_attempt_animation(bot, inline_msg_id, data):
         await asyncio.sleep(1)
         await bot.edit_message_text(inline_message_id=inline_msg_id, text=base_phrase + ".", parse_mode=ParseMode.HTML)
         await asyncio.sleep(1)
-        
+         
         success = random.choice([True, False])
-        
+         
         if success:
             past = get_past_form(action)
             final_text = f"✅ <b>{sender_name}</b> успешно {past}"
@@ -499,7 +501,7 @@ async def run_attempt_animation(bot, inline_msg_id, data):
             final_text = f"❌ <b>{sender_name}</b> {fail_msg}"
             if rest:
                 final_text += f" {rest}"
-                
+                 
         await bot.edit_message_text(inline_message_id=inline_msg_id, text=final_text, parse_mode=ParseMode.HTML)
     except Exception as e:
         print(f"Animation error: {e}")
@@ -536,7 +538,7 @@ async def inline_rp_handler(query: InlineQuery):
 
     words = text.split()
     first_word = words[0].lower() if words else ""
-    
+     
     # Обработка составных действий вроде "забеременеть от"
     if first_word == "забеременеть" and len(words) > 1 and words[1].lower() == "от":
         first_word = "забеременеть от"
@@ -573,7 +575,7 @@ async def inline_rp_handler(query: InlineQuery):
     if first_word in INSTANT_ACTIONS:
         emoji = INSTANT_ACTIONS[first_word]
         sender_name = query.from_user.first_name
-        
+         
         msg_text = f"{emoji} <b>{sender_name}</b> решил(а) {first_word}"
         if rest_text_str:
             msg_text += f" {rest_text_str}"
@@ -593,13 +595,13 @@ async def inline_rp_handler(query: InlineQuery):
     if first_word in ATTEMPT_ACTIONS:
         sender_name = query.from_user.first_name
         action_id = str(uuid.uuid4())[:8]
-        
+         
         ATTEMPT_TASKS_DATA[action_id] = {
             "sender_name": sender_name,
             "base_action": first_word,
             "rest_of_text": rest_text_str
         }
-        
+         
         initial_display = f"⚡ <b>{sender_name}</b> пытается {first_word}"
         if rest_text_str:
             initial_display += f" {rest_text_str}"
@@ -709,7 +711,7 @@ async def accept_callback(callback: CallbackQuery):
     except Exception as e:
         print(f"Ошибка в accept_callback: {e}")
         await callback.answer("Произошла ошибка при обновлении сообщения.", show_alert=True)
-    
+     
     STORAGE.pop(action_id, None)
 
 
@@ -776,7 +778,7 @@ async def main():
     dp = Dispatcher()
     dp.include_router(router)
     await bot.delete_webhook(drop_pending_updates=True)
-    
+     
     await start_web_server()
     await dp.start_polling(bot)
 
