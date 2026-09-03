@@ -20,335 +20,82 @@ TOKEN = "8854942536:AAHwvwjuecCpgdf4p3stFebRH6z1SqdLI5I"
 router = Router()
 
 _hugs_and_touch = [
-    "обнять",
-    "прижать",
-    "погладить",
-    "гладь",
-    "поглаживать",
-    "массировать",
-    "помассировать",
-    "погреть",
-    "согреть",
-    "потрогать",
-    "трогать",
-    "помацать",
-    "пожмякать",
-    "мацать",
-    "жмякать",
-    "потискать",
-    "затискать",
-    "прильнуть",
-    "ластиться",
-    "млеть",
-    "таять",
-    "уткнуться",
-    "прислониться",
-    "притулиться",
-    "потереться",
-    "укрыть",
-    "укутать",
-    "окутать",
-    "успокоить",
-    "поддержать",
-    "причесать",
-    "перевязать",
-    "пожать",
-    "положить",
+    "обнять", "прижать", "погладить", "гладь", "поглаживать", "массировать",
+    "помассировать", "погреть", "согреть", "потрогать", "трогать", "помацать",
+    "пожмякать", "мацать", "жмякать", "потискать", "затискать", "прильнуть",
+    "ластиться", "млеть", "таять", "уткнуться", "прислониться", "притулиться",
+    "потереться", "укрыть", "укутать", "окутать", "успокоить", "поддержать",
+    "причесать", "перевязать", "пожать", "положить",
 ]
 
 _kisses_and_love = [
-    "поцеловать",
-    "разцеловать",
-    "цемнуть",
-    "чмокнуть",
-    "отчмокать",
-    "зацеловать",
-    "ласкать",
-    "обласкать",
-    "подарить",
-    "поздравить",
-    "пожелать",
-    "извиниться",
-    "похвалить",
+    "поцеловать", "разцеловать", "цемнуть", "чмокнуть", "отчмокать", "зацеловать",
+    "ласкать", "обласкать", "подарить", "поздравить", "пожелать", "извиниться", "похвалить",
 ]
 
 _explicit_actions = [
-    "засосать",
-    "трахнуть",
-    "оттрахать",
-    "изнасиловать",
-    "иметь",
-    "отиметь",
-    "отшлифовать",
-    "трахать",
-    "ебать",
-    "выебать",
-    "отсосать",
-    "отлизать",
-    "отполировать",
-    "полировать",
-    "отминенить",
-    "ссосать",
-    "высосать",
-    "раздеть",
-    "осеменить",
-    "оплодотворить",
+    "засосать", "трахнуть", "оттрахать", "изнасиловать", "иметь", "отиметь",
+    "отшлифовать", "трахать", "ебать", "выебать", "отсосать", "отлизать",
+    "отполировать", "полировать", "отминенить", "ссосать", "высосать", "раздеть",
+    "осеменить", "оплодотворить",
 ]
 
 _bites_and_scratches = [
-    "щекотать",
-    "пощекотать",
-    "укусить",
-    "лизь",
-    "лизнуть",
-    "облизать",
-    "вылизать",
-    "полизать",
-    "подлизать",
-    "кусь",
-    "куснуть",
-    "покусать",
-    "погрызть",
-    "загрызть",
-    "цап",
-    "цапнуть",
-    "царап",
-    "поцарапать",
-    "оцарапать",
-    "исцарапать",
-    "поноюхать",
-    "занюхнуть",
-    "нюх-нюх",
-    "подразнить",
-    "дразнить",
-    "хыть-хыть",
+    "щекотать", "пощекотать", "укусить", "лизь", "лизнуть", "облизать", "вылизать",
+    "полизать", "подлизать", "кусь", "куснуть", "покусать", "погрызть", "загрызть",
+    "цап", "цапнуть", "царап", "поцарапать", "оцарапать", "исцарапать", "понюхать",
+    "занюхнуть", "нюх-нюх", "подразнить", "дразнить", "хыть-хыть",
 ]
 
 _hits_and_fights = [
-    "наказать",
-    "шлеп",
-    "шлепнуть",
-    "шлепать",
-    "отшлепать",
-    "выпороть",
-    "хлопнуть",
-    "отхлопать",
-    "хлопать",
-    "ущипнуть",
-    "щипать",
-    "пощипать",
-    "пихнуть",
-    "толкнуть",
-    "швырнуть",
-    "бросить",
-    "кинуть",
-    "запульнуть",
-    "запустить",
-    "треснуть",
-    "трепать",
-    "потрепать",
-    "взъерошить",
-    "опрокинуть",
-    "сбить",
-    "повалить",
-    "скрутить",
-    "связать",
-    "обезоружить",
-    "отобрать",
-    "выбить",
-    "сдернуть",
-    "сорвать",
-    "ударить",
-    "уебать",
-    "ебануть",
-    "долбануть",
-    "ушатать",
-    "порвать",
-    "въебать",
-    "разъебать",
-    "пнуть",
-    "попинать",
+    "наказать", "шлеп", "шлепнуть", "шлепать", "отшлепать", "выпороть", "хлопнуть",
+    "отхлопать", "хлопать", "ущипнуть", "щипать", "пощипать", "пихнуть", "толкнуть",
+    "швырнуть", "бросить", "кинуть", "запульнуть", "запустить", "треснуть",
+    "трепать", "потрепать", "взъерошить", "опрокинуть", "сбить", "повалить",
+    "скрутить", "связать", "обезоружить", "отобрать", "выбить", "сдернуть",
+    "сорвать", "ударить", "уебать", "ебануть", "долбануть", "ушатать", "порвать",
+    "въебать", "разъебать", "пнуть", "попинать",
 ]
 
 _kills_and_dangers = [
-    "застрелить",
-    "расстрелять",
-    "отстрелить",
-    "застрелиться",
-    "порезаться",
-    "стрельнуть",
-    "шмальнуть",
-    "сжечь",
-    "поджечь",
-    "убить",
-    "уничтожить",
-    "унизить",
-    "арестовать",
-    "оторвать",
-    "отрубить",
-    "отъебать",
-    "отрезать",
-    "порезать",
-    "резать",
-    "закопать",
-    "выкопать",
-    "взорвать",
-    "подорвать",
-    "заминировать",
-    "кастрировать",
-    "послать",
+    "застрелить", "расстрелять", "отстрелить", "застрелиться", "порезаться",
+    "стрельнуть", "шмальнуть", "сжечь", "поджечь", "убить", "уничтожить",
+    "унизить", "арестовать", "оторвать", "отрубить", "отъебать", "отрезать",
+    "порезать", "резать", "закопать", "выкопать", "взорвать", "подорвать",
+    "заминировать", "кастрировать", "послать",
 ]
 
 _food_and_drink = [
-    "покормить",
-    "покушать",
-    "поесть",
-    "есть",
-    "кушать",
-    "пить",
-    "попить",
-    "выпить",
-    "попоить",
-    "бухнуть",
-    "хрум",
-    "хрумкать",
-    "хрустнуть",
+    "покормить", "покушать", "поесть", "есть", "кушать", "пить", "попить",
+    "выпить", "попоить", "бухнуть", "хрум", "хрумкать", "хрустнуть",
 ]
 
 _emotions_and_sounds = [
-    "орать",
-    "наорать",
-    "рассмешить",
-    "рассказать",
-    "улыбнуться",
-    "засмеяться",
-    "заплакать",
-    "ухмыльнуться",
-    "нахмуриться",
-    "закатить",
-    "вздохнуть",
-    "зевнуть",
-    "кивнуть",
-    "покачать",
-    "подмигнуть",
-    "помахать",
-    "показать",
-    "постучать",
-    "указать",
-    "ткнуть",
-    "поделиться",
-    "фырк",
-    "фыркнуть",
-    "хмык",
-    "хмыкнуть",
-    "мур",
-    "мурчать",
-    "мурлыкнуть",
-    "тявкнуть",
-    "пырк",
-    "шмяк",
-    "чмяк",
-    "бум",
-    "плюх",
-    "хлюп",
-    "поморщиться",
-    "покоситься",
-    "пялиться",
-    "уставиться",
-    "оценить",
-    "окинуть",
-    "проигнорировать",
-    "отмахнуться",
-    "отвернуться",
-    "огрызнуться",
-    "буркнуть",
-    "пробормотать",
-    "прошептать",
-    "прокричать",
-    "завопить",
-    "визгнуть",
-    "заикнуться",
-    "изумиться",
-    "удивить",
-    "опешить",
-    "поблагодарить",
-    "попросить",
-    "позвать",
-    "игнорировать",
-    "слушать",
+    "орать", "наорать", "рассмешить", "рассказать", "улыбнуться", "засмеяться",
+    "заплакать", "ухмыльнуться", "нахмуриться", "закатить", "вздохнуть", "зевнуть",
+    "кивнуть", "покачать", "подмигнуть", "помахать", "показать", "постучать",
+    "указать", "ткнуть", "поделиться", "фырк", "фыркнуть", "хмык", "хмыкнуть",
+    "мур", "мурчать", "мурлыкнуть", "тявкнуть", "пырк", "шмяк", "чмяк", "бум",
+    "плюх", "хлюп", "поморщиться", "покоситься", "пялиться", "уставиться",
+    "оценить", "окинуть", "проигнорировать", "отмахнуться", "отвернуться",
+    "огрызнуться", "буркнуть", "пробормотать", "прошептать", "прокричать",
+    "завопить", "визгнуть", "заикнуться", "изумиться", "удивить", "опешить",
+    "поблагодарить", "попросить", "позвать", "игнорировать", "слушать",
 ]
 
 _movement_and_actions = [
-    "сесть",
-    "присесть",
-    "посидеть",
-    "встать",
-    "привстать",
-    "лечь",
-    "прилечь",
-    "полежать",
-    "похрустеть",
-    "сделать",
-    "стать",
-    "делать",
-    "дать",
-    "передать",
-    "взять",
-    "забрать",
-    "схватить",
-    "хвать",
-    "подергать",
-    "дернуть",
-    "дергать",
-    "тянуть",
-    "потянуть",
-    "оставить",
-    "посмотреть",
-    "смотреть",
-    "отправить",
-    "открыть",
-    "записать",
-    "предложить",
-    "пригласить",
-    "снять",
-    "медленно",
-    "быстро",
-    "ускориться",
-    "замедлиться",
-    "подпрыгнуть",
-    "спрыгнуть",
-    "запрыгнуть",
-    "перепрыгнуть",
-    "убежать",
-    "улизнуть",
-    "смыться",
-    "поползти",
-    "приползти",
-    "подползти",
-    "уползти",
-    "прокрасться",
-    "подкрасться",
-    "напасть",
-    "наброситься",
-    "прыгнуть",
-    "шмыгнуть",
-    "увернуться",
-    "уклониться",
-    "оглянуться",
-    "повернуться",
-    "нагнуться",
-    "наклониться",
-    "откинуться",
-    "развалиться",
-    "растянуться",
-    "подбежать",
-    "подлететь",
-    "влететь",
-    "ворваться",
-    "скрыться",
-    "ускользнуть",
-    "спрятать",
-    "закутать",
+    "сесть", "присесть", "посидеть", "встать", "привстать", "лечь", "прилечь",
+    "полежать", "похрустеть", "сделать", "стать", "делать", "дать", "передать",
+    "взять", "забрать", "схватить", "хвать", "подергать", "дернуть", "дергать",
+    "тянуть", "потянуть", "оставить", "посмотреть", "смотреть", "отправить",
+    "открыть", "записать", "предложить", "пригласить", "снять", "медленно",
+    "быстро", "ускориться", "замедлиться", "подпрыгнуть", "спрыгнуть",
+    "запрыгнуть", "перепрыгнуть", "убежать", "улизнуть", "смыться", "поползти",
+    "приползти", "подползти", "уползти", "прокрасться", "подкрасться", "напасть",
+    "наброситься", "прыгнуть", "шмыгнуть", "увернуться", "уклониться",
+    "оглянуться", "повернуться", "нагнуться", "наклониться", "откинуться",
+    "развалиться", "растянуться", "подбежать", "подлететь", "влететь",
+    "ворваться", "скрыться", "ускользнуть", "спрятать", "закутать",
 ]
 
 INSTANT_ACTIONS = {
@@ -362,32 +109,24 @@ INSTANT_ACTIONS = {
 }
 
 ACTIONS_DICT = {}
-for w in _hugs_and_touch:
-    ACTIONS_DICT[w] = ("🤗", "🫂")
-for w in _kisses_and_love:
-    ACTIONS_DICT[w] = ("💋", "💖")
-for w in _explicit_actions:
-    ACTIONS_DICT[w] = ("🔥", "❤️‍🔥")
-for w in _bites_and_scratches:
-    ACTIONS_DICT[w] = ("🐾", "✨")
-for w in _hits_and_fights:
-    ACTIONS_DICT[w] = ("👊", "💥")
+for w in _hugs_and_touch: ACTIONS_DICT[w] = ("🤗", "🫂")
+for w in _kisses_and_love: ACTIONS_DICT[w] = ("💋", "💖")
+for w in _explicit_actions: ACTIONS_DICT[w] = ("🔥", "❤️‍🔥")
+for w in _bites_and_scratches: ACTIONS_DICT[w] = ("🐾", "✨")
+for w in _hits_and_fights: ACTIONS_DICT[w] = ("👊", "💥")
 for w in _kills_and_dangers:
-    if w not in INSTANT_ACTIONS:
-        ACTIONS_DICT[w] = ("💀", "⚰️")
+    if w not in INSTANT_ACTIONS: ACTIONS_DICT[w] = ("💀", "⚰️")
 for w in _food_and_drink:
-    if w not in INSTANT_ACTIONS:
-        ACTIONS_DICT[w] = ("🍕", "🥂")
+    if w not in INSTANT_ACTIONS: ACTIONS_DICT[w] = ("🍕", "🥂")
 for w in _emotions_and_sounds:
-    if w not in INSTANT_ACTIONS:
-        ACTIONS_DICT[w] = ("💬", "💫")
-for w in _movement_and_actions:
-    ACTIONS_DICT[w] = ("👣", "⚡")
+    if w not in INSTANT_ACTIONS: ACTIONS_DICT[w] = ("💬", "💫")
+for w in _movement_and_actions: ACTIONS_DICT[w] = ("👣", "⚡")
 
 STORAGE = {}
 DECLINED_STORAGE = {}
-STATS = {"total_accepted": 0, "actions_usage": {}}
-MARRIAGES = {}
+MARRY_STORAGE = {}
+MARRIAGES = {}  # user_id -> {"partner_id": int, "partner_name": str}
+STATS = {}      # chat_id -> {"total_accepted": int, "actions_usage": dict}
 BLACKLIST = {}
 USER_NAME_TO_ID = {}
 
@@ -395,51 +134,22 @@ USER_NAME_TO_ID = {}
 def get_past_form(verb: str) -> str:
     verb = verb.lower().strip()
     irregulars = {
-        "сесть": "сел(-а)",
-        "встать": "встал(-а)",
-        "привстать": "привстал(-а)",
-        "лечь": "лег(-ла)",
-        "прилечь": "прилег(-ла)",
-        "полежать": "полежал(-а)",
-        "дать": "дал(-а)",
-        "взять": "взял(-а)",
-        "забрать": "забрал(-а)",
-        "схватить": "схватил(-а)",
-        "напасть": "напал(-а)",
-        "наброситься": "набросился(-ась)",
-        "убить": "убил(-а)",
-        "упасть": "упал(-а)",
-        "заплакать": "заплакал(-а)",
-        "засмеяться": "засмеялся(-ась)",
-        "улыбнуться": "улыбнулся(-ась)",
-        "нахмуриться": "нахмурился(-ась)",
-        "вздохнуть": "вздохнул(-а)",
-        "зевнуть": "зевнул(-а)",
-        "кивнуть": "кивнул(-а)",
-        "подмигнуть": "подмигнул(-а)",
-        "помахать": "помахал(-а)",
-        "постучать": "постучал(-а)",
-        "ткнуть": "ткнул(-а)",
-        "фыркнуть": "фыркнул(-а)",
-        "хмыкнуть": "хмыкнул(-а)",
-        "мурчать": "мурчал(-а)",
-        "мурлыкнуть": "мурлыкнул(-а)",
-        "тявкнуть": "тявкнул(-а)",
-        "поморщиться": "поморщился(-ась)",
-        "покоситься": "покосился(-ась)",
-        "огрызнуться": "огрызнулся(-ась)",
-        "буркнуть": "буркнул(-а)",
-        "пробормотать": "пробормотал(-а)",
-        "прошептать": "прошептал(-а)",
-        "прокричать": "прокричал(-а)",
-        "завопить": "завопил(-а)",
-        "визгнуть": "визгнул(-а)",
-        "заикнуться": "заикнулся(-ась)",
-        "изумиться": "изумился(-ась)",
-        "опешить": "опешил(-а)",
-        "поблагодарить": "поблагодарил(-а)",
-        "попросить": "попросил(-а)",
-        "позвать": "позвал(-а)",
+        "сесть": "сел(-а)", "встать": "встал(-а)", "привстать": "привстал(-а)",
+        "лечь": "лег(-ла)", "прилечь": "прилег(-ла)", "полежать": "полежал(-а)",
+        "дать": "дал(-а)", "взять": "взял(-а)", "забрать": "забрал(-а)",
+        "схватить": "схватил(-а)", "напасть": "напал(-а)", "наброситься": "набросился(-ась)",
+        "убить": "убил(-а)", "упасть": "упал(-а)", "заплакать": "заплакал(-а)",
+        "засмеяться": "засмеялся(-ась)", "улыбнуться": "улыбнулся(-ась)",
+        "нахмуриться": "нахмурился(-ась)", "вздохнуть": "вздохнул(-а)",
+        "зевнуть": "зевнул(-а)", "кивнуть": "кивнул(-а)", "подмигнуть": "подмигнул(-а)",
+        "помахать": "помахал(-а)", "постучать": "постучал(-а)", "ткнуть": "ткнул(-а)",
+        "фыркнуть": "фыркнул(-а)", "хмыкнуть": "хмыкнул(-а)", "мурчать": "мурчал(-а)",
+        "мурлыкнуть": "мурлыкнул(-а)", "тявкнуть": "тявкнул(-а)", "поморщиться": "поморщился(-ась)",
+        "покоситься": "покосился(-ась)", "огрызнуться": "огрызнулся(-ась)",
+        "буркнуть": "буркнул(-а)", "пробормотать": "пробормотал(-а)", "прошептать": "прошептал(-а)",
+        "прокричать": "прокричал(-а)", "завопить": "завопил(-а)", "визгнуть": "визгнул(-а)",
+        "заикнуться": "заикнулся(-ась)", "изумиться": "изумился(-ась)", "опешить": "опешил(-а)",
+        "поблагодарить": "поблагодарил(-а)", "попросить": "попросил(-а)", "позвать": "позвал(-а)",
         "слушать": "слушал(-а)",
     }
     if verb in irregulars:
@@ -453,10 +163,6 @@ def get_past_form(verb: str) -> str:
         return verb[:-2] + "л(-а)"
     elif verb.endswith("чь"):
         return verb[:-2] + "г(-ла)"
-    
-    interjections = {"кусь", "лизь", "цап", "царап", "нюх-нюх", "хыть-хыть", "фырк", "хмык", "мур", "пырк", "шмяк", "чмяк", "бум", "плюх", "хлюп"}
-    if verb in interjections:
-        return f"сделал(-а) {verb}"
         
     return verb + "л(-а)"
 
@@ -467,26 +173,7 @@ async def start_handler(message: Message):
         "✨ <b>Доступные действия для ролевой игры:</b>\n\n"
         "⚡ <b>Мгновенные действия (без подтверждения):</b>\n"
         f"{', '.join(INSTANT_ACTIONS.keys())}\n\n"
-        "🤗 <b>Обнимашки и касания:</b>\n"
-        f"{', '.join(_hugs_and_touch)}\n\n"
-        "💋 <b>Любовь и романтика:</b>\n"
-        f"{', '.join(_kisses_and_love)}\n\n"
-        "🔥 <b>Пикантное:</b>\n"
-        f"{', '.join(_explicit_actions)}\n\n"
-        "🐾 <b>Кусь и царапки:</b>\n"
-        f"{', '.join(_bites_and_scratches)}\n\n"
-        "👊 <b>Удары и драки:</b>\n"
-        f"{', '.join(_hits_and_fights)}\n\n"
-        "💀 <b>Опасно и жестко:</b>\n"
-        f"{', '.join(_kills_and_dangers)}\n\n"
-        "🍕 <b>Еда и напитки:</b>\n"
-        f"{', '.join(_food_and_drink)}\n\n"
-        "💬 <b>Эмоции и звуки:</b>\n"
-        f"{', '.join(_emotions_and_sounds)}\n\n"
-        "👣 <b>Движения:</b>\n"
-        f"{', '.join(_movement_and_actions)}\n\n"
-        "💍 <b>Браки:</b> Используйте /marry в ответ на сообщение партнера, а /divorce для расторжения.\n"
-        "🚫 <b>Черный список:</b> /block и /unblock по юзернейму.\n"
+        "💍 <b>Браки:</b> /marry в ответ на сообщение партнера, /divorce для расторжения.\n"
         "📊 <b>Статистика:</b> /stats\n\n"
         "💡 <i>Инлайн-режим: введите @ваш_бот действие [цель/текст]</i>"
     )
@@ -495,8 +182,13 @@ async def start_handler(message: Message):
 
 @router.message(Command("stats"))
 async def stats_handler(message: Message):
-    total = STATS["total_accepted"]
-    usage = STATS["actions_usage"]
+    chat_id = message.chat.id
+    if chat_id not in STATS:
+        STATS[chat_id] = {"total_accepted": 0, "actions_usage": {}}
+    
+    chat_stats = STATS[chat_id]
+    total = chat_stats["total_accepted"]
+    usage = chat_stats["actions_usage"]
     top_actions = sorted(usage.items(), key=lambda x: x[1], reverse=True)[:5]
     top_text = (
         "\n".join([f"• <code>{act}</code> — {cnt} раз(а)" for act, cnt in top_actions])
@@ -504,8 +196,16 @@ async def stats_handler(message: Message):
         else "Пока нет данных"
     )
 
+    user_id = message.from_user.id
+    marriage_info = MARRIAGES.get(user_id)
+    if marriage_info:
+        marriage_text = f"Состоит в браке с <b>{marriage_info['partner_name']}</b> ❤️"
+    else:
+        marriage_text = "Не состоит в браке 💔"
+
     await message.answer(
-        f"📊 <b>Статистика бота:</b>\n\n"
+        f"📊 <b>Статистика для этого чата:</b>\n\n"
+        f"💍 Ваш статус: {marriage_text}\n"
         f"✅ Успешно выполненных действий: <b>{total}</b>\n\n"
         f"🏆 <b>Топ-5 популярных действий:</b>\n{top_text}",
         parse_mode=ParseMode.HTML,
@@ -530,13 +230,78 @@ async def marry_handler(message: Message):
         await message.reply("💍 Кто-то из вас уже состоит в браке!")
         return
 
-    MARRIAGES[user_id] = partner_id
-    MARRIAGES[partner_id] = user_id
+    proposal_id = str(uuid.uuid4())[:8]
+    MARRY_STORAGE[proposal_id] = {
+        "user_id": user_id,
+        "partner_id": partner_id,
+        "user_name": message.from_user.first_name,
+        "partner_name": partner_name,
+    }
+
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[[
+            InlineKeyboardButton(text="Принять ❤️", callback_data=f"marryaccept_{proposal_id}"),
+            InlineKeyboardButton(text="Отклонить 💔", callback_data=f"marrydecline_{proposal_id}"),
+        ]]
+    )
 
     await message.answer(
-        f"💍 <b>Поздравляем!</b> <b>{message.from_user.first_name}</b> и <b>{partner_name}</b> теперь официально в браке! ❤️",
+        f"💍 <b>{message.from_user.first_name}</b> делает предложение руки и сердца <b>{partner_name}</b>!\nПринимаете предложение?",
+        reply_markup=keyboard,
         parse_mode=ParseMode.HTML,
     )
+
+
+@router.callback_query(F.data.startswith("marryaccept_"))
+async def marry_accept_callback(callback: CallbackQuery):
+    proposal_id = callback.data.split("_")[1]
+    data = MARRY_STORAGE.get(proposal_id)
+
+    if not data:
+        await callback.answer("Срок действия предложения истёк.", show_alert=True)
+        return
+
+    if callback.from_user.id != data["partner_id"]:
+        await callback.answer("Это предложение адресовано не вам!", show_alert=True)
+        return
+
+    user_id = data["user_id"]
+    partner_id = data["partner_id"]
+
+    if user_id in MARRIAGES or partner_id in MARRIAGES:
+        await callback.answer("Кто-то из вас уже состоит в браке!", show_alert=True)
+        return
+
+    MARRIAGES[user_id] = {"partner_id": partner_id, "partner_name": data["partner_name"]}
+    MARRIAGES[partner_id] = {"partner_id": user_id, "partner_name": data["user_name"]}
+
+    await callback.message.edit_text(
+        f"💍 <b>Поздравляем!</b> <b>{data['user_name']}</b> и <b>{data['partner_name']}</b> теперь официально в браке! ❤️",
+        parse_mode=ParseMode.HTML
+    )
+    MARRY_STORAGE.pop(proposal_id, None)
+    await callback.answer("Вы приняли предложение! 💍")
+
+
+@router.callback_query(F.data.startswith("marrydecline_"))
+async def marry_decline_callback(callback: CallbackQuery):
+    proposal_id = callback.data.split("_")[1]
+    data = MARRY_STORAGE.get(proposal_id)
+
+    if not data:
+        await callback.answer("Срок действия предложения истёк.", show_alert=True)
+        return
+
+    if callback.from_user.id != data["partner_id"]:
+        await callback.answer("Это предложение адресовано не вам!", show_alert=True)
+        return
+
+    await callback.message.edit_text(
+        f"💔 <b>{data['partner_name']}</b> отклонил(-а) предложение руки и сердца от <b>{data['user_name']}</b>.",
+        parse_mode=ParseMode.HTML
+    )
+    MARRY_STORAGE.pop(proposal_id, None)
+    await callback.answer("Предложение отклонено.")
 
 
 @router.message(Command("divorce"))
@@ -546,10 +311,10 @@ async def divorce_handler(message: Message):
         await message.reply("💔 Вы и так не состоите в браке.")
         return
 
-    partner_id = MARRIAGES[user_id]
-    del MARRIAGES[user_id]
+    partner_id = MARRIAGES[user_id]["partner_id"]
+    MARRIAGES.pop(user_id, None)
     if partner_id in MARRIAGES:
-        del MARRIAGES[partner_id]
+        MARRIAGES.pop(partner_id, None)
 
     await message.reply("💔 Вы успешно развелись и разорвали брак.")
 
@@ -558,7 +323,7 @@ async def divorce_handler(message: Message):
 async def block_handler(message: Message):
     args = message.text.split()
     if len(args) < 2:
-        await message.reply("🚫 Укажите юзернейм для блокировки, например: /block @username")
+        await message.reply("🚫 Укажите юзернейм, например: /block @username")
         return
 
     target_username = args[1].lstrip("@").lower()
@@ -580,7 +345,7 @@ async def block_handler(message: Message):
 async def unblock_handler(message: Message):
     args = message.text.split()
     if len(args) < 2:
-        await message.reply("✅ Укажите юзернейм для разблокировки, например: /unblock @username")
+        await message.reply("✅ Укажите юзернейм, например: /unblock @username")
         return
 
     target_username = args[1].lstrip("@").lower()
@@ -591,7 +356,7 @@ async def unblock_handler(message: Message):
         BLACKLIST[user_id].remove(target_id)
         await message.reply(f"✅ Пользователь @{target_username} удален из черного списка.")
     else:
-        await message.reply("⚠️ Пользователь не найден в вашем черном списке.")
+        await message.reply("⚠️ Пользователь не найден в черном списке.")
 
 
 @router.message(F.text.lower() == "!принудить")
@@ -604,13 +369,18 @@ async def force_action_handler(message: Message):
         return
 
     sender_name = data["sender_name"]
-    target_name = data["target_name"]
     base_action = data["base_action"]
     rest_of_text = data["rest_of_text"]
     accepted_emoji = data["accepted_emoji"]
 
     past_verb = get_past_form(base_action)
     updated_text = f"⚡ <b>{sender_name}</b> принудительно {past_verb} {rest_of_text} {accepted_emoji}".strip()
+
+    chat_id = message.chat.id
+    if chat_id not in STATS:
+        STATS[chat_id] = {"total_accepted": 0, "actions_usage": {}}
+    STATS[chat_id]["total_accepted"] += 1
+    STATS[chat_id]["actions_usage"][base_action] = STATS[chat_id]["actions_usage"].get(base_action, 0) + 1
 
     try:
         if data.get("inline_message_id"):
@@ -630,9 +400,6 @@ async def force_action_handler(message: Message):
             )
     except Exception as e:
         print(f"Ошибка в force_action_handler: {e}")
-
-    STATS["total_accepted"] += 1
-    STATS["actions_usage"][base_action] = STATS["actions_usage"].get(base_action, 0) + 1
 
     DECLINED_STORAGE.pop(user_id, None)
 
@@ -661,6 +428,7 @@ async def inline_rp_handler(query: InlineQuery):
     words = text.split()
     first_word = words[0].lower() if words else ""
     rest_of_words = words[1:] if len(words) > 1 else []
+    rest_text_str = " ".join(rest_of_words) if rest_of_words else ""
 
     for word in rest_of_words:
         if word.startswith("@"):
@@ -678,18 +446,23 @@ async def inline_rp_handler(query: InlineQuery):
                 await query.answer([article], cache_time=1)
                 return
 
+    # Мгновенные действия (сохраняем остальной текст)
     if first_word in INSTANT_ACTIONS:
         emoji = INSTANT_ACTIONS[first_word]
         sender_name = query.from_user.first_name
+        
+        msg_text = f"{emoji} <b>{sender_name}</b> решил(а) {first_word}"
+        if rest_text_str:
+            msg_text += f" {rest_text_str}"
 
         message_content = InputTextMessageContent(
-            message_text=f"{emoji} <b>{sender_name}</b> решил(а) {first_word}",
+            message_text=msg_text,
             parse_mode=ParseMode.HTML,
         )
         results.append(
             InlineQueryResultArticle(
                 id=str(uuid.uuid4())[:8],
-                title=f"{emoji} {first_word.capitalize()}",
+                title=f"{emoji} {first_word.capitalize()} {rest_text_str}".strip(),
                 description="Мгновенное действие (без подтверждения)",
                 input_message_content=message_content,
             )
@@ -718,7 +491,6 @@ async def inline_rp_handler(query: InlineQuery):
 
     for match in matches:
         initial_emoji, accepted_emoji = ACTIONS_DICT[match]
-        rest_text_str = " ".join(rest_of_words) if rest_of_words else ""
         suggested_text = match + (" " + rest_text_str if rest_text_str else "")
 
         action_id = str(uuid.uuid4())[:8]
@@ -779,8 +551,12 @@ async def accept_callback(callback: CallbackQuery):
     past_verb = get_past_form(base_action)
     updated_text = f"{accepted_emoji} <b>{sender_name}</b> {past_verb} {rest_of_text}".strip()
 
-    STATS["total_accepted"] += 1
-    STATS["actions_usage"][base_action] = STATS["actions_usage"].get(base_action, 0) + 1
+    # Сохраняем статистику конкретно для этого чата (если доступен chat)
+    chat_id = callback.message.chat.id if callback.message else 0
+    if chat_id not in STATS:
+        STATS[chat_id] = {"total_accepted": 0, "actions_usage": {}}
+    STATS[chat_id]["total_accepted"] += 1
+    STATS[chat_id]["actions_usage"][base_action] = STATS[chat_id]["actions_usage"].get(base_action, 0) + 1
 
     try:
         if callback.inline_message_id:
@@ -880,7 +656,6 @@ async def main():
     await bot.delete_webhook(drop_pending_updates=True)
     
     await start_web_server()
-
     await dp.start_polling(bot)
 
 
