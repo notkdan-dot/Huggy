@@ -547,9 +547,22 @@ async def force_action_handler(message: Message):
 
     updated_text = f"⚡ <b>{sender_name}</b> принудительно совершил(а) действие над <b>{target_name}</b>: {action_text} {accepted_emoji}"
 
-    await message.reply_to_message.edit_text(
-        text=updated_text, parse_mode=ParseMode.HTML, reply_markup=None
-    )
+    try:
+        if data.get("inline_message_id"):
+            await message.bot.edit_message_text(
+                inline_message_id=data["inline_message_id"],
+                text=updated_text, 
+                parse_mode=ParseMode.HTML, 
+                reply_markup=None
+            )
+        else:
+            await message.reply_to_message.edit_text(
+                text=updated_text, 
+                parse_mode=ParseMode.HTML, 
+                reply_markup=None
+            )
+    except Exception as e:
+        print(f"Ошибка в force_action_handler: {e}")
 
     STATS["total_accepted"] += 1
     base_action = data["base_action"]
@@ -685,7 +698,7 @@ async def accept_callback(callback: CallbackQuery):
     data = STORAGE.get(action_id)
 
     if not data:
-        await callback.answer("Срок действия запроса истёк.", show_alert=True)
+        await callback.answer("Срок действия запроса истёк или бот перезапускался.", show_alert=True)
         return
 
     if callback.from_user.id == data["sender_id"]:
@@ -702,8 +715,25 @@ async def accept_callback(callback: CallbackQuery):
 
     updated_text = f"{accepted_emoji} <b>{sender_name}</b> {full_text}"
 
-    await callback.message.edit_text(text=updated_text, parse_mode=ParseMode.HTML, reply_markup=None)
-    await callback.answer("Действие принято! ❤️")
+    try:
+        if callback.inline_message_id:
+            await callback.bot.edit_message_text(
+                inline_message_id=callback.inline_message_id,
+                text=updated_text,
+                parse_mode=ParseMode.HTML,
+                reply_markup=None
+            )
+        else:
+            await callback.message.edit_text(
+                text=updated_text,
+                parse_mode=ParseMode.HTML,
+                reply_markup=None
+            )
+        await callback.answer("Действие принято! ❤️")
+    except Exception as e:
+        print(f"Ошибка в accept_callback: {e}")
+        await callback.answer("Произошла ошибка при обновлении сообщения.", show_alert=True)
+    
     STORAGE.pop(action_id, None)
 
 
@@ -713,7 +743,7 @@ async def decline_callback(callback: CallbackQuery):
     data = STORAGE.get(action_id)
 
     if not data:
-        await callback.answer("Срок действия запроса истёк.", show_alert=True)
+        await callback.answer("Срок действия запроса истёк или бот перезапускался.", show_alert=True)
         return
 
     if callback.from_user.id == data["sender_id"]:
@@ -722,15 +752,17 @@ async def decline_callback(callback: CallbackQuery):
 
     sender_name = data["sender_name"]
     target_name = callback.from_user.first_name
-    msg_id = callback.message.message_id
+    
+    storage_key = callback.inline_message_id if callback.inline_message_id else (callback.message.message_id if callback.message else action_id)
 
-    DECLINED_STORAGE[msg_id] = {
+    DECLINED_STORAGE[storage_key] = {
         "sender_id": data["sender_id"],
         "sender_name": sender_name,
         "target_name": target_name,
         "action_text": data["full_text"],
         "accepted_emoji": data["accepted_emoji"],
         "base_action": data["base_action"],
+        "inline_message_id": callback.inline_message_id,
     }
 
     updated_text = (
@@ -738,8 +770,25 @@ async def decline_callback(callback: CallbackQuery):
         f"💡 <i>Отправьте ответом !принудить, чтобы выполнить принудительно.</i>"
     )
 
-    await callback.message.edit_text(text=updated_text, parse_mode=ParseMode.HTML, reply_markup=None)
-    await callback.answer("Действие отклонено.")
+    try:
+        if callback.inline_message_id:
+            await callback.bot.edit_message_text(
+                inline_message_id=callback.inline_message_id,
+                text=updated_text,
+                parse_mode=ParseMode.HTML,
+                reply_markup=None
+            )
+        else:
+            await callback.message.edit_text(
+                text=updated_text,
+                parse_mode=ParseMode.HTML,
+                reply_markup=None
+            )
+        await callback.answer("Действие отклонено.")
+    except Exception as e:
+        print(f"Ошибка в decline_callback: {e}")
+        await callback.answer("Произошла ошибка при обновлении сообщения.", show_alert=True)
+
     STORAGE.pop(action_id, None)
 
 
