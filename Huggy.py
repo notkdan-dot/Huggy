@@ -392,6 +392,75 @@ BLACKLIST = {}
 USER_NAME_TO_ID = {}
 
 
+def get_past_form(verb: str) -> str:
+    verb = verb.lower().strip()
+    irregulars = {
+        "сесть": "сел(-а)",
+        "встать": "встал(-а)",
+        "привстать": "привстал(-а)",
+        "лечь": "лег(-ла)",
+        "прилечь": "прилег(-ла)",
+        "полежать": "полежал(-а)",
+        "дать": "дал(-а)",
+        "взять": "взял(-а)",
+        "забрать": "забрал(-а)",
+        "схватить": "схватил(-а)",
+        "напасть": "напал(-а)",
+        "наброситься": "набросился(-ась)",
+        "убить": "убил(-а)",
+        "упасть": "упал(-а)",
+        "заплакать": "заплакал(-а)",
+        "засмеяться": "засмеялся(-ась)",
+        "улыбнуться": "улыбнулся(-ась)",
+        "нахмуриться": "нахмурился(-ась)",
+        "вздохнуть": "вздохнул(-а)",
+        "зевнуть": "зевнул(-а)",
+        "кивнуть": "кивнул(-а)",
+        "подмигнуть": "подмигнул(-а)",
+        "помахать": "помахал(-а)",
+        "постучать": "постучал(-а)",
+        "ткнуть": "ткнул(-а)",
+        "фыркнуть": "фыркнул(-а)",
+        "хмыкнуть": "хмыкнул(-а)",
+        "мурчать": "мурчал(-а)",
+        "мурлыкнуть": "мурлыкнул(-а)",
+        "тявкнуть": "тявкнул(-а)",
+        "поморщиться": "поморщился(-ась)",
+        "покоситься": "покосился(-ась)",
+        "огрызнуться": "огрызнулся(-ась)",
+        "буркнуть": "буркнул(-а)",
+        "пробормотать": "пробормотал(-а)",
+        "прошептать": "прошептал(-а)",
+        "прокричать": "прокричал(-а)",
+        "завопить": "завопил(-а)",
+        "визгнуть": "визгнул(-а)",
+        "заикнуться": "заикнулся(-ась)",
+        "изумиться": "изумился(-ась)",
+        "опешить": "опешил(-а)",
+        "поблагодарить": "поблагодарил(-а)",
+        "попросить": "попросил(-а)",
+        "позвать": "позвал(-а)",
+        "слушать": "слушал(-а)",
+    }
+    if verb in irregulars:
+        return irregulars[verb]
+    
+    if verb.endswith("ться") or verb.endswith("тись"):
+        return verb[:-4] + "лся(-ась)"
+    elif verb.endswith("ть"):
+        return verb[:-2] + "л(-а)"
+    elif verb.endswith("ти"):
+        return verb[:-2] + "л(-а)"
+    elif verb.endswith("чь"):
+        return verb[:-2] + "г(-ла)"
+    
+    interjections = {"кусь", "лизь", "цап", "царап", "нюх-нюх", "хыть-хыть", "фырк", "хмык", "мур", "пырк", "шмяк", "чмяк", "бум", "плюх", "хлюп"}
+    if verb in interjections:
+        return f"сделал(-а) {verb}"
+        
+    return verb + "л(-а)"
+
+
 @router.message(CommandStart())
 async def start_handler(message: Message):
     text = (
@@ -527,25 +596,21 @@ async def unblock_handler(message: Message):
 
 @router.message(F.text.lower() == "!принудить")
 async def force_action_handler(message: Message):
-    if not message.reply_to_message:
-        return
-
-    msg_id = message.reply_to_message.message_id
-    data = DECLINED_STORAGE.get(msg_id)
+    user_id = message.from_user.id
+    data = DECLINED_STORAGE.get(user_id)
 
     if not data:
-        return
-
-    if message.from_user.id != data["sender_id"]:
-        await message.reply("⚠️ Принудить к действию может только тот, кто его отправил!")
+        await message.reply("⚠️ У вас нет отклоненных действий для принуждения!")
         return
 
     sender_name = data["sender_name"]
     target_name = data["target_name"]
-    action_text = data["action_text"]
+    base_action = data["base_action"]
+    rest_of_text = data["rest_of_text"]
     accepted_emoji = data["accepted_emoji"]
 
-    updated_text = f"⚡ <b>{sender_name}</b> принудительно совершил(а) действие над <b>{target_name}</b>: {action_text} {accepted_emoji}"
+    past_verb = get_past_form(base_action)
+    updated_text = f"⚡ <b>{sender_name}</b> принудительно {past_verb} {rest_of_text} {accepted_emoji}".strip()
 
     try:
         if data.get("inline_message_id"):
@@ -555,8 +620,10 @@ async def force_action_handler(message: Message):
                 parse_mode=ParseMode.HTML, 
                 reply_markup=None
             )
-        else:
-            await message.reply_to_message.edit_text(
+        elif data.get("chat_id") and data.get("message_id"):
+            await message.bot.edit_message_text(
+                chat_id=data["chat_id"],
+                message_id=data["message_id"],
                 text=updated_text, 
                 parse_mode=ParseMode.HTML, 
                 reply_markup=None
@@ -565,12 +632,9 @@ async def force_action_handler(message: Message):
         print(f"Ошибка в force_action_handler: {e}")
 
     STATS["total_accepted"] += 1
-    base_action = data["base_action"]
     STATS["actions_usage"][base_action] = STATS["actions_usage"].get(base_action, 0) + 1
 
-    del DECLINED_STORAGE[msg_id]
-    if msg_id in STORAGE:
-        del STORAGE[msg_id]
+    DECLINED_STORAGE.pop(user_id, None)
 
 
 @router.inline_query()
@@ -654,7 +718,8 @@ async def inline_rp_handler(query: InlineQuery):
 
     for match in matches:
         initial_emoji, accepted_emoji = ACTIONS_DICT[match]
-        suggested_text = match + (" " + " ".join(rest_of_words) if rest_of_words else "")
+        rest_text_str = " ".join(rest_of_words) if rest_of_words else ""
+        suggested_text = match + (" " + rest_text_str if rest_text_str else "")
 
         action_id = str(uuid.uuid4())[:8]
         sender_name = query.from_user.first_name
@@ -663,6 +728,7 @@ async def inline_rp_handler(query: InlineQuery):
             "sender_name": sender_name,
             "sender_id": user_id,
             "base_action": match,
+            "rest_of_text": rest_text_str,
             "full_text": suggested_text,
             "accepted_emoji": accepted_emoji,
         }
@@ -706,14 +772,15 @@ async def accept_callback(callback: CallbackQuery):
         return
 
     sender_name = data["sender_name"]
-    full_text = data["full_text"]
-    accepted_emoji = data["accepted_emoji"]
     base_action = data["base_action"]
+    rest_of_text = data["rest_of_text"]
+    accepted_emoji = data["accepted_emoji"]
+
+    past_verb = get_past_form(base_action)
+    updated_text = f"{accepted_emoji} <b>{sender_name}</b> {past_verb} {rest_of_text}".strip()
 
     STATS["total_accepted"] += 1
     STATS["actions_usage"][base_action] = STATS["actions_usage"].get(base_action, 0) + 1
-
-    updated_text = f"{accepted_emoji} <b>{sender_name}</b> {full_text}"
 
     try:
         if callback.inline_message_id:
@@ -752,17 +819,18 @@ async def decline_callback(callback: CallbackQuery):
 
     sender_name = data["sender_name"]
     target_name = callback.from_user.first_name
-    
-    storage_key = callback.message.message_id if callback.message else action_id
+    sender_id = data["sender_id"]
 
-    DECLINED_STORAGE[storage_key] = {
-        "sender_id": data["sender_id"],
+    DECLINED_STORAGE[sender_id] = {
+        "sender_id": sender_id,
         "sender_name": sender_name,
         "target_name": target_name,
-        "action_text": data["full_text"],
-        "accepted_emoji": data["accepted_emoji"],
         "base_action": data["base_action"],
+        "rest_of_text": data["rest_of_text"],
+        "accepted_emoji": data["accepted_emoji"],
         "inline_message_id": callback.inline_message_id,
+        "chat_id": callback.message.chat.id if callback.message else None,
+        "message_id": callback.message.message_id if callback.message else None,
     }
 
     updated_text = (
